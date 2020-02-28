@@ -1,0 +1,9 @@
+{
+  "editor.tabSize": 2,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.formatOnSave": true,
+  "turboConsoleLog.logMessagePrefix": "Log"
+  // #每次保存的时候将代码按eslint格式进行修复
+}
