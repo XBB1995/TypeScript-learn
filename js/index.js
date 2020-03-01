@@ -12,79 +12,70 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var Person = /** @class */ (function () {
-    function Person(name) {
+function printName(name) {
+    console.log(name.firstName + " " + name.secondName);
+}
+// 直接传入对象则需要 完全匹配接口
+// printName({
+//   age: 25,
+//   firstName: "Chen",
+//   secondName: "17"
+// })
+// 如果传入的是一个外部定义的对象 则只需要内部包含接口要求的属性即可
+// 但是为了标准统一 推荐严格按照接口来传参
+var obj = {
+    age: 25,
+    firstName: "Chen",
+    secondName: "17"
+};
+printName(obj);
+// 类型要一致 形参不需要和接口内一致
+var md5 = function (k, v) {
+    return k + v;
+};
+var newD;
+newD = {
+    "0": -1,
+    "000": 0,
+    "001": 1,
+    // 0: 1234,
+    // 1: 1,
+    length: 20,
+    name: 123
+};
+console.log(newD[0]);
+// 上面的number自动转化成字符串来索引
+console.log(newD["length"]);
+// 注意实现接口 关键字 implements
+var Dog1 = /** @class */ (function () {
+    function Dog1(subName) {
+        this.subName = subName;
+    }
+    Dog1.prototype.eat = function () {
+        console.log(this.subName);
+    };
+    return Dog1;
+}());
+// 类实现接口
+var Programmer = /** @class */ (function () {
+    function Programmer(name) {
         this.name = name;
     }
-    // run = (): void => {}
-    Person.prototype.getName = function () {
-        console.log(this.name);
-    };
-    Person.printInfo = function () {
-        console.log("static printInfo");
-    };
-    return Person;
+    // 注意祖先接口中的方法也必须实现
+    Programmer.prototype.eat = function () { };
+    Programmer.prototype.work = function () { };
+    return Programmer;
 }());
-var MyWorker = /** @class */ (function (_super) {
-    __extends(MyWorker, _super);
-    function MyWorker(name) {
-        // 调用父类的构造方法
+// 先继承类后实现接口
+var Web = /** @class */ (function (_super) {
+    __extends(Web, _super);
+    function Web(name) {
         return _super.call(this, name) || this;
     }
-    return MyWorker;
-}(Person));
-// TS 提供了三种类型 属性修饰符
-// public 默认
-// protected 类内 子类内 可访问 外部没法访问
-// private 类内可访问 子类内 外部无法访问
-// var p = new Person("XBB")
-// Person.printInfo()
-// p.getName()
-// 类的多态
-// 多个类继承
-// class Animal {
-//   name: string
-//   constructor(name: string) {
-//     this.name = name
-//   }
-//   // 具体 由继承的类实现 不同的子类有不同的表现
-//   eat() {
-//     console.log("吃的方法")
-//   }
-// }
-// class Dog extends Animal {
-//   constructor(name: string) {
-//     super(name)
-//   }
-//   eat() {
-//     return this.name + "骨头"
-//   }
-// }
-// class Cat extends Animal {
-//   constructor(name: string) {
-//     super(name)
-//   }
-//   eat() {
-//     return this.name + "老鼠"
-//   }
-// }
-// 抽象方法只放在抽象类当中
-// 用来定义标准
-var Animal = /** @class */ (function () {
-    function Animal(name) {
-        this.name = name;
-    }
-    return Animal;
-}());
-var Dog = /** @class */ (function (_super) {
-    __extends(Dog, _super);
-    function Dog(name) {
-        return _super.call(this, name) || this;
-    }
-    // 抽象类的子类必须要实现抽象类里面的抽象方法
-    // 或继续抽象
-    Dog.prototype.eat = function () {
-        return "meat";
+    Web.prototype.frontEnd = function (code) {
+        console.log(this.name + code);
     };
-    return Dog;
-}(Animal));
+    return Web;
+}(Programmer));
+var web = new Web("XBB");
+web.frontEnd("在小米工作");
