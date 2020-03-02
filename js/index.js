@@ -1,81 +1,120 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-function printName(name) {
-    console.log(name.firstName + " " + name.secondName);
+// 泛型 解决类 接口 方法的复用性 以及对不特定数据类型的支持
+// 支持不特定的数据类型 但要求传入类型和返回类型要一致
+// eg. <T>泛型 必须大写字母 前后统一 但不一定为T
+// 泛型函数
+function getData(value) {
+    return value;
 }
-// 直接传入对象则需要 完全匹配接口
-// printName({
-//   age: 25,
-//   firstName: "Chen",
-//   secondName: "17"
+// 调用
+getData(123);
+getData("123");
+// 参数为数组
+function loggingIdentity(arg) {
+    // 数组拥有长度属性
+    console.log(arg.length);
+    return arg;
+}
+// var foo12 = function<T>(value: T): T {
+//   return value
+// }
+// let myFoo1: <U>(arg: U) => U = foo12
+// 泛型类 T
+var MinClass = /** @class */ (function () {
+    function MinClass() {
+        this.itemList = [];
+    }
+    MinClass.prototype.add = function (item) {
+        this.itemList.push(item);
+    };
+    MinClass.prototype.min = function () {
+        var minItem = this.itemList[0];
+        for (var i = 0; i < this.itemList.length; i++) {
+            if (minItem > this.itemList[i]) {
+                minItem = this.itemList[i];
+            }
+        }
+        return minItem;
+    };
+    return MinClass;
+}());
+// 调用
+var m1 = new MinClass();
+// 字典序
+m1.add("b");
+m1.add("bc");
+m1.add("ab");
+// console.log(m1.min())
+// extra 把类作为类型约束参数 使用泛型优化
+// 避免重复代码
+var User = /** @class */ (function () {
+    function User() {
+    }
+    return User;
+}());
+var ArticleList = /** @class */ (function () {
+    function ArticleList(params) {
+        this.title = params.title;
+        this.desc = params.desc;
+        this.status = params.status;
+    }
+    return ArticleList;
+}());
+var MysqlDb = /** @class */ (function () {
+    function MysqlDb() {
+    }
+    MysqlDb.prototype.add = function (user) {
+        console.log("Log: MysqlDb -> add -> user", user);
+        return true;
+    };
+    return MysqlDb;
+}());
+// 实例
+var u = new User();
+u.username = "XBB";
+u.password = "123";
+// var a = new ArticleList({
+//   title: "news",
+//   status: 200
 // })
-// 如果传入的是一个外部定义的对象 则只需要内部包含接口要求的属性即可
-// 但是为了标准统一 推荐严格按照接口来传参
-var obj = {
-    age: 25,
-    firstName: "Chen",
-    secondName: "17"
+var db = new MysqlDb();
+db.add(u);
+// 实现 泛型接口 在函数后标记泛型
+var setData = function (value) {
+    return value;
 };
-printName(obj);
-// 类型要一致 形参不需要和接口内一致
-var md5 = function (k, v) {
-    return k + v;
-};
-var newD;
-newD = {
-    "0": -1,
-    "000": 0,
-    "001": 1,
-    // 0: 1234,
-    // 1: 1,
-    length: 20,
-    name: 123
-};
-console.log(newD[0]);
-// 上面的number自动转化成字符串来索引
-console.log(newD["length"]);
-// 注意实现接口 关键字 implements
-var Dog1 = /** @class */ (function () {
-    function Dog1(subName) {
-        this.subName = subName;
-    }
-    Dog1.prototype.eat = function () {
-        console.log(this.subName);
-    };
-    return Dog1;
-}());
-// 类实现接口
-var Programmer = /** @class */ (function () {
-    function Programmer(name) {
-        this.name = name;
-    }
-    // 注意祖先接口中的方法也必须实现
-    Programmer.prototype.eat = function () { };
-    Programmer.prototype.work = function () { };
-    return Programmer;
-}());
-// 先继承类后实现接口
-var Web = /** @class */ (function (_super) {
-    __extends(Web, _super);
-    function Web(name) {
-        return _super.call(this, name) || this;
-    }
-    Web.prototype.frontEnd = function (code) {
-        console.log(this.name + code);
-    };
-    return Web;
-}(Programmer));
-var web = new Web("XBB");
-web.frontEnd("在小米工作");
+function getData2(value) {
+    return value;
+}
+// 调用 规定接口数据类型
+var setData2 = getData2;
+// extra
+// function getProperty<T, K extends keyof T>(obj: T, key: K) {
+//   return obj[key]
+// }
+function create(c) {
+    return new c();
+}
+function create1(c) {
+    return new c();
+}
+// class BeeKeeper {
+//   hasMask: boolean
+// }
+// class ZooKeeper {
+//   nametag: string
+// }
+// class Animal123 {
+//   numLegs: number
+// }
+// class Bee extends Animal123 {
+//   keeper: BeeKeeper
+// }
+// class Lion extends Animal123 {
+//   keeper: ZooKeeper
+// }
+// function createInstance<A extends Animal123>(c: new () => A): A {
+//   return new c()
+// }
+// createInstance(Lion).keeper.nametag // typechecks!
+// createInstance(Bee).keeper.hasMask // typechecks!

@@ -1,141 +1,143 @@
-// 接口： 行为和动作的规范 对批量方法进行约束
-// 属性接口 对JSON的约束
-interface FullName {
-  firstName: string
-  // 可选属性 ?:
-  secondName?: string
+// 泛型 解决类 接口 方法的复用性 以及对不特定数据类型的支持
+// 支持不特定的数据类型 但要求传入类型和返回类型要一致
+// eg. <T>泛型 必须大写字母 前后统一 但不一定为T
+// 泛型函数
+function getData<T>(value: T): T {
+  return value
+}
+// 调用
+getData<number>(123)
+getData<string>("123")
+
+// 参数为数组
+function loggingIdentity<T>(arg: T[]): T[] {
+  // 数组拥有长度属性
+  console.log(arg.length)
+  return arg
 }
 
-function printName(name: FullName) {
-  console.log(name.firstName + " " + name.secondName)
+// var foo12 = function<T>(value: T): T {
+//   return value
+// }
+// let myFoo1: <U>(arg: U) => U = foo12
+
+// 泛型类 T
+class MinClass<T> {
+  public itemList: T[] = []
+  add(item: T): void {
+    this.itemList.push(item)
+  }
+  min(): T {
+    var minItem = this.itemList[0]
+    for (var i = 0; i < this.itemList.length; i++) {
+      if (minItem > this.itemList[i]) {
+        minItem = this.itemList[i]
+      }
+    }
+    return minItem
+  }
 }
-// 直接传入对象则需要 完全匹配接口
-// printName({
-//   age: 25,
-//   firstName: "Chen",
-//   secondName: "17"
+// 调用
+var m1 = new MinClass<string>()
+// 字典序
+m1.add("b")
+m1.add("bc")
+m1.add("ab")
+// console.log(m1.min())
+
+// extra 把类作为类型约束参数 使用泛型优化
+// 避免重复代码
+class User {
+  username: string | undefined
+  password: string | undefined
+}
+class ArticleList {
+  title: string | undefined
+  desc?: string | undefined
+  status: number | undefined
+  constructor(params: { title: string; desc?: string; status: number }) {
+    this.title = params.title
+    this.desc = params.desc
+    this.status = params.status
+  }
+}
+class MysqlDb<T> {
+  add(user: T): boolean {
+    console.log("Log: MysqlDb -> add -> user", user)
+    return true
+  }
+}
+// 实例
+var u = new User()
+u.username = "XBB"
+u.password = "123"
+// var a = new ArticleList({
+//   title: "news",
+//   status: 200
 // })
-// 如果传入的是一个外部定义的对象 则只需要内部包含接口要求的属性即可
-// 但是为了标准统一 推荐严格按照接口来传参
-var obj = {
-  age: 25,
-  firstName: "Chen",
-  secondName: "17"
-}
-printName(obj)
 
-// ajax 实例
-// interface Config {
-//   // 自己定制要求
-//   type: "GET" | "POST"
-//   url: string
-//   data?: string
-//   dataType: string
+var db = new MysqlDb<User | ArticleList>()
+db.add(u)
+// db.add(a)
+
+// 泛型接口
+// 方法1
+interface ConfigFn {
+  <T>(value1: T): T
+}
+// 实现 泛型接口 在函数后标记泛型
+var setData: ConfigFn = function<T>(value: T): T {
+  return value
+}
+// 方法2
+interface ConfigFn2<T> {
+  (value: T): T
+}
+function getData2<T>(value: T): T {
+  return value
+}
+// 调用 规定接口数据类型
+var setData2: ConfigFn2<string> = getData2
+
+// extra
+// function getProperty<T, K extends keyof T>(obj: T, key: K) {
+//   return obj[key]
 // }
 
-// function ajax(config: Config) {
-//   var xhr = new XMLHttpRequest()
-//   // true 表示异步 默认
-//   xhr.open(config.type, config.url, true)
-//   xhr.send(config.data)
-//   xhr.onreadystatechange = function() {
-//     if (xhr.readyState === 4 && xhr.status === 200) {
-//       console.log("success")
-//       if (config.dataType === "json") {
-//         JSON.parse(xhr.responseText)
-//         console.log("Log: ", JSON.parse(xhr.responseText))
-//       } else {
-//         console.log(xhr.responseText)
-//       }
-//     }
-//   }
+function create<T>(c: { new (): T }): T {
+  return new c()
+}
+// 上面的函数 等效于 使用接口
+interface inner<T> {
+  new (): T
+}
+function create1<T>(c: inner<T>): T {
+  return new c()
+}
+
+// class BeeKeeper {
+//   hasMask: boolean
 // }
 
-// ajax({
-//   type: "GET",
-//   url: "",
-//   dataType: "json"
-// })
+// class ZooKeeper {
+//   nametag: string
+// }
 
-// 函数类型接口
-interface Encrypt {
-  // 定义函数参数及类型还有返回值类型
-  (key: string, value: string): string
-}
+// class Animal123 {
+//   numLegs: number
+// }
 
-// 类型要一致 形参不需要和接口内一致
-var md5: Encrypt = function(k: string, v: string) {
-  return k + v
-}
+// class Bee extends Animal123 {
+//   keeper: BeeKeeper
+// }
 
-// 定义一个可索引对象
-interface NumberDictionary {
-  // 类似于中间增加的string转成number的规则
-  // 返回值类型必须一致 此处统一为number
-  [index: string]: number
-  // 额外属性
-  length: number
-  name: number
-}
+// class Lion extends Animal123 {
+//   keeper: ZooKeeper
+// }
 
-var newD: NumberDictionary
-newD = {
-  "0": -1,
-  "000": 0,
-  "001": 1,
-  // 0: 1234,
-  // 1: 1,
-  length: 20,
-  name: 123
-}
+// function createInstance<A extends Animal123>(c: new () => A): A {
+//   return new c()
+// }
 
-console.log(newD[0])
-// 上面的number自动转化成字符串来索引
-console.log(newD["length"])
-
-// 类 类型接口 对类的约束和标准
-interface Animal1 {
-  subName: string
-  eat(str: string): void
-}
-// 注意实现接口 关键字 implements
-class Dog1 implements Animal1 {
-  subName: string
-  constructor(subName: string) {
-    this.subName = subName
-  }
-  eat() {
-    console.log(this.subName)
-  }
-}
-
-// 接口继承
-interface Animal2 {
-  eat(): void
-}
-// 人类接口 继承 动物接口
-interface Human extends Animal2 {
-  work(): void
-}
-// 类实现接口
-class Programmer {
-  public name: string
-  constructor(name: string) {
-    this.name = name
-  }
-  // 注意祖先接口中的方法也必须实现
-  eat() {}
-  work() {}
-}
-// 先继承类后实现接口
-class Web extends Programmer implements Human {
-  constructor(name: string) {
-    super(name)
-  }
-  frontEnd(code: string) {
-    console.log(this.name + code)
-  }
-}
-
-var web = new Web("XBB")
-web.frontEnd("在小米工作")
+// createInstance(Lion).keeper.nametag // typechecks!
+// createInstance(Bee).keeper.hasMask // typechecks!
